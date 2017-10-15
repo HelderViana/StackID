@@ -29,8 +29,15 @@ namespace OpenIdProvider.Helpers
                 lock (Client)
                 {
                     creds = Client.Credentials.GetCredential(Client.Host, Client.Port, Client.DeliveryMethod.ToString());
-
-                    _from = creds.UserName + "@" + Current.AppRootUri.Host;
+                    //my own flaver:
+                    if (creds.UserName.Contains("@"))
+                    {
+                        _from = creds.UserName;
+                    }
+                    else
+                    {
+                        _from = creds.UserName + "@" + Current.AppRootUri.Host;
+                    }                    
                 }
 
                 return _from;
