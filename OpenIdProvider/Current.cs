@@ -138,7 +138,13 @@ namespace OpenIdProvider
             get
             {
                 var k = WebConfigurationManager.AppSettings["KeyStore"];
-
+                // my own correctio for relative paths:
+                if (k.Contains("~"))
+                {
+                    string serverPath;
+                    serverPath = HttpContext.Current.Server.MapPath(k);
+                    k = serverPath.ToString();
+                }
                 return k;
             }
         }
@@ -664,9 +670,27 @@ namespace OpenIdProvider
             // check if we were forwarded from a proxy
             if (xForwardedFor.HasValue())
             {
+                // workarround, check if in the X-Forwarded-For has a port number like in Azure webapp hosting:
                 xForwardedFor = LastAddress.Match(xForwardedFor).Value;
-                if (xForwardedFor.HasValue() && !IsPrivateIP(xForwardedFor))
-                    remoteAddr = xForwardedFor;
+                string[] parts = xForwardedFor.Split(':');
+                if (parts.Length == 1)
+                {
+                    //original:
+                    if (xForwardedFor.HasValue() && !IsPrivateIP(xForwardedFor))
+                        remoteAddr = xForwardedFor;
+                    //end
+                }
+                else if (parts.Length == 2)
+                {
+                    string host = parts[0];
+                    string port = parts[1];
+                    remoteAddr = host;
+                }
+                else
+                {
+                    // throw error
+                    throw new Exception(string.Format("X-Forwarded-For has an invalid value, with more than host + port {0}", xForwardedFor.ToString()));
+                }                                
             }
 
             // Something weird is going on, bail
