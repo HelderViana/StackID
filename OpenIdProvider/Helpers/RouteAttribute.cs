@@ -238,7 +238,7 @@ namespace OpenIdProvider.Helpers
                 }
                 
                 var fkeyShouldBe = Current.XSRFToken;
-
+                
                 xsrfCheck = fkey == fkeyShouldBe;
             }
 
