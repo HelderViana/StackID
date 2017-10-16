@@ -71,6 +71,34 @@ namespace OpenIdProvider.Controllers
         }
 
         /// <summary>
+        /// List users registred in OpenID provider
+        /// </summary>
+        /// <param name="showall">isToShowAll</param>
+        /// <param name="page">Page Number</param>
+        /// <param name="pagesize">page Size</param>
+        /// <returns></returns>
+        [Route("admin/list-users/view", HttpVerbs.Post, AuthorizedUser.Administrator)]
+        public ActionResult ListUsers(bool? showall, int? page, int? pagesize)
+        {
+            var all = showall.GetValueOrDefault(false);
+            var p = page.GetValueOrDefault(0);
+            var ps = pagesize.GetValueOrDefault(30);
+
+            var bans = Current.ReadDB.IPBans.AsQueryable();
+            var listUsers = Current.ReadDB.Users.AsQueryable();
+            //if (!all) listUsers = listUsers.Where(u => u.IsAdministrator == false);
+
+            ViewData["count"] = listUsers.Count();
+
+            listUsers = listUsers.OrderByDescending(u => u.CreationDate).Skip(ps * p).Take(ps);
+            ViewData["page"] = p;
+            ViewData["pagesize"] = ps;
+            ViewData["showall"] = all;
+
+            return View(listUsers.ToList());
+        }
+
+        /// <summary>
         /// List all errors in a handy web interface
         /// </summary>
         [Route("admin/errors", AuthorizedUser.Administrator)]
